@@ -68,7 +68,7 @@ module Tango
     def command_as_user(user, command, args)
       args.unshift(command)
       command_str = [current_directory, current_umask, args.join(' ')].compact.join(' && ')
-      ['su', ['-l', '-c', "'#{command_str}'", user]]
+      ['su', ['-l', '-c', command_str, user]]
     end
 
     def current_directory

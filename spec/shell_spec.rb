@@ -98,22 +98,22 @@ module Tango
       end
 
       it 'executes the command in a new login shell' do
-        klass.should_receive(:fork_and_exec).with('su', {}, '-l', '-c', "'ls -al /dir'", 'amy')
+        klass.should_receive(:fork_and_exec).with('su', {}, '-l', '-c', "ls -al /dir", 'amy')
         chain.in_context(user_context) { klass.shell('ls', '-al', '/dir') }
       end
 
       it 'preserves the directory context' do
-        klass.should_receive(:fork_and_exec).with('su', {}, '-l', '-c', "'cd /foo && id'", 'amy')
+        klass.should_receive(:fork_and_exec).with('su', {}, '-l', '-c', "cd /foo && id", 'amy')
         chain.in_context(user_context).in_context(dir_context) { klass.shell('id') }
       end
 
       it 'preserves the umask context' do
-        klass.should_receive(:fork_and_exec).with('su', {}, '-l', '-c', "'umask 0644 && id'", 'amy')
+        klass.should_receive(:fork_and_exec).with('su', {}, '-l', '-c', "umask 0644 && id", 'amy')
         chain.in_context(user_context).in_context(umask_context) { klass.shell('id') }
       end
 
       it 'preserves many contexts' do
-        klass.should_receive(:fork_and_exec).with('su', {}, '-l', '-c', "'cd /foo && umask 0644 && id'", 'amy')
+        klass.should_receive(:fork_and_exec).with('su', {}, '-l', '-c', "cd /foo && umask 0644 && id", 'amy')
         chain.in_context(user_context).in_context(umask_context).in_context(dir_context) { klass.shell('id') }
       end
     end
