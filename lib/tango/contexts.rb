@@ -14,7 +14,7 @@ module Tango
     module_function :current
 
     def context_for(name)
-      current.find { |context| canonical_name(context) == name.to_s }
+      current.reverse.find { |context| canonical_name(context) == name.to_s }
     end
     module_function :context_for
 

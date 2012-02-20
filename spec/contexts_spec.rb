@@ -18,5 +18,12 @@ module Tango
     it 'returns nil when not in the given context' do
       Contexts.context_for(:test_context).should be_nil
     end
+
+    it 'finds the inner most context first' do
+      outter_context = Contexts::TestContext.new
+      Contexts::Chain.new.in_context(outter_context).in_context(context) do
+        Contexts.context_for(:test_context).should == context
+      end
+    end
   end
 end
