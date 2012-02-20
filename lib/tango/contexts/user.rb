@@ -1,6 +1,7 @@
 module Tango
   module Contexts
     class User
+      attr_reader :username
 
       def initialize(username)
         @username = username

@@ -9,6 +9,10 @@ module Tango
 
       log "% #{command} #{args.join(' ')}\n\n" if options[:echo]
 
+      if user_context = Tango::Contexts.context_for(:user)
+        command, args = command_as_user(user_context.username, command, args)
+      end
+
       pid, pipe = fork_and_exec(command, options[:env_vars], *args)
       output    = collect_output(pipe, options[:echo])
       Process.waitpid(pid)
@@ -61,6 +65,10 @@ module Tango
       output
     end
 
+    def command_as_user(user, command, args)
+      args.unshift(command)
+      ['su', ['-l', '-c', "'#{args.join(' ')}'", user]]
+    end
   end
 end
 
