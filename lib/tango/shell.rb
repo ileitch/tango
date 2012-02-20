@@ -7,11 +7,11 @@ module Tango
       options = { :echo => true, :env_vars => {} }
       options.merge!(args.pop) if args.last.is_a?(Hash)
 
-      log "% #{command} #{args.join(' ')}\n\n" if options[:echo]
-
       if user_context = Tango::Contexts.context_for(:user)
         command, args = command_as_user(user_context.username, command, args)
       end
+
+      log "% #{command} #{args.join(' ')}\n\n" if options[:echo]
 
       pid, pipe = fork_and_exec(command, options[:env_vars], *args)
       output    = collect_output(pipe, options[:echo])
