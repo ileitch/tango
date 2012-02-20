@@ -67,7 +67,20 @@ module Tango
 
     def command_as_user(user, command, args)
       args.unshift(command)
-      ['su', ['-l', '-c', "'#{args.join(' ')}'", user]]
+      command_str = [current_directory, current_umask, args.join(' ')].compact.join(' && ')
+      ['su', ['-l', '-c', "'#{command_str}'", user]]
+    end
+
+    def current_directory
+      if context = Tango::Contexts.context_for(:directory)
+        "cd #{context.directory}"
+      end
+    end
+
+    def current_umask
+      if context = Tango::Contexts.context_for(:umask)
+        "umask #{context.umask}"
+      end
     end
   end
 end
