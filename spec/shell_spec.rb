@@ -68,17 +68,29 @@ module Tango
     end
 
     context 'as a user' do
-      class User
-        attr_reader :username
-        def initialize(username)
-          @username = username
-        end
+      class Context
         def enter; end
         def leave; end
       end
 
-      let(:context) { User.new('amy') }
+      class User < Context
+        def username; 'amy' end
+      end
+
+      class Directory < Context
+        def directory; '/foo' end
+      end
+
+      class Umask < Context
+        def umask; '0644' end
+      end
+
+      let(:user_context) { User.new }
+      let(:dir_context) { Directory.new }
+      let(:umask_context) { Umask.new }
       let(:klass) { @stub_class.new }
+      let(:chain) { Contexts::Chain.new }
+
       before do
         klass.stub(:fork_and_exec => [0, stub(:pipe).as_null_object])
         klass.stub(:collect_output)
@@ -86,8 +98,23 @@ module Tango
       end
 
       it 'executes the command in a new login shell' do
-        klass.should_receive(:fork_and_exec).with('su', {}, '-', 'amy', '-c', "'ls -al /dir'")
-        Contexts::Chain.new.in_context(context) { klass.shell('ls', '-al', '/dir') }
+        klass.should_receive(:fork_and_exec).with('su', {}, '-l', '-c', "'ls -al /dir'", 'amy')
+        chain.in_context(user_context) { klass.shell('ls', '-al', '/dir') }
+      end
+
+      it 'preserves the directory context' do
+        klass.should_receive(:fork_and_exec).with('su', {}, '-l', '-c', "'cd /foo && id'", 'amy')
+        chain.in_context(user_context).in_context(dir_context) { klass.shell('id') }
+      end
+
+      it 'preserves the umask context' do
+        klass.should_receive(:fork_and_exec).with('su', {}, '-l', '-c', "'umask 0644 && id'", 'amy')
+        chain.in_context(user_context).in_context(umask_context) { klass.shell('id') }
+      end
+
+      it 'preserves many contexts' do
+        klass.should_receive(:fork_and_exec).with('su', {}, '-l', '-c', "'cd /foo && umask 0644 && id'", 'amy')
+        chain.in_context(user_context).in_context(umask_context).in_context(dir_context) { klass.shell('id') }
       end
     end
   end
