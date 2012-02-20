@@ -43,7 +43,7 @@ module Tango
         STDOUT.reopen(write_end)
         STDERR.reopen(write_end)
         env_vars.each { |key, value| ENV[key] = value }
-        exec(command, *args)
+        exec(command, *args.map(&:to_s))
       end
       write_end.close
 
