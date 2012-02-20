@@ -67,5 +67,28 @@ module Tango
       end
     end
 
+    context 'as a user' do
+      class User
+        attr_reader :username
+        def initialize(username)
+          @username = username
+        end
+        def enter; end
+        def leave; end
+      end
+
+      let(:context) { User.new('amy') }
+      let(:klass) { @stub_class.new }
+      before do
+        klass.stub(:fork_and_exec => [0, stub(:pipe).as_null_object])
+        klass.stub(:collect_output)
+        Process.stub(:waitpid)
+      end
+
+      it 'executes the command in a new login shell' do
+        klass.should_receive(:fork_and_exec).with('su', {}, '-', 'amy', '-c', "'ls -al /dir'")
+        Contexts::Chain.new.in_context(context) { klass.shell('ls', '-al', '/dir') }
+      end
+    end
   end
 end
